@@ -335,9 +335,9 @@ createSpecFile pkgdata flags mdest = do
   let execs = sort $ map exeName $ filter isBuildable $ executables pkgDesc
 
   let listDataFiles = do unless (null (dataFiles pkgDesc)) $ do
-                           put "%dir %{_datadir}/%{pkg_name}-%{version}"
-                           mapM_ (put . ("%dir %{_datadir}/%{pkg_name}-%{version}/"++)) (listDirs (dataFiles pkgDesc))
-                         mapM_ (put . ("%{_datadir}/%{pkg_name}-%{version}/"++)) (dataFiles pkgDesc)
+                           put ("%dir %{_datadir}/" ++ pkg_name ++ "-%{version}")
+                           mapM_ (put . (("%dir %{_datadir}/" ++ pkg_name ++ "-%{version}/")++)) (listDirs (dataFiles pkgDesc))
+                         mapM_ (put . (("%{_datadir}/" ++ pkg_name ++ "-%{version}/")++)) (dataFiles pkgDesc)
 
       listDirs :: [FilePath] -> [FilePath]
       listDirs = nub . concatMap (map joinPath . tail . inits) . nub . map init . filter (\p -> length p > 1) . map splitDirectories
