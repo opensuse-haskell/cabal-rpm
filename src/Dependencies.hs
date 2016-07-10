@@ -70,6 +70,7 @@ dependencies pkgDesc = do
 data QueryBackend = Rpm | Repoquery deriving Eq
 
 resolveLib :: String -> IO (Maybe String)
+resolveLib "stdc++" = return $ Just "libstdc++-devel"
 resolveLib lib = do
   lib64 <- doesDirectoryExist "/usr/lib64"
   let libsuffix = if lib64 then "64" else ""
