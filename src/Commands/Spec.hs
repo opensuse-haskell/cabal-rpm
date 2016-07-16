@@ -214,7 +214,6 @@ createSpecFile pkgdata flags mdest = do
   let alldeps = sort $ deps ++ tools ++ map (++ isa) clibs ++ pkgcfgs
   let extraTestDeps = sort $ testsuiteDeps \\ deps
   unless (null $ alldeps ++ extraTestDeps) $ do
-    put "# Begin cabal-rpm deps:"
     mapM_ (putHdr "BuildRequires") alldeps
     -- for ghc < 7.8
     when (distro `notElem` [Fedora, SUSE] &&
@@ -224,7 +223,6 @@ createSpecFile pkgdata flags mdest = do
       put "%if %{with tests}"
       mapM_ (putHdr "BuildRequires") extraTestDeps
       put "%endif"
-    put "# End cabal-rpm deps"
 
   putNewline
 
@@ -259,9 +257,7 @@ createSpecFile pkgdata flags mdest = do
     putHdr "Requires(postun)" "ghc-compiler = %{ghc_version}"
     putHdr "Requires" $ (if binlib then "ghc-%{name}" else "%{name}") ++ isa +-+ "= %{version}-%{release}"
     unless (null $ clibs ++ pkgcfgs) $ do
-      put "# Begin cabal-rpm deps:"
       mapM_ (putHdr "Requires") $ sort $ map (++ isa) clibs ++ pkgcfgs ++ ["pkgconfig" | distro == SUSE, not $ null pkgcfgs]
-      put "# End cabal-rpm deps"
     putNewline
     put $ "%description" +-+ ghcPkgDevel
     put $ wrapGenDesc $ "This package provides the Haskell" +-+ pkg_name +-+ "library development files."
