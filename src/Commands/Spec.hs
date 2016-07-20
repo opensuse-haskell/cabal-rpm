@@ -284,7 +284,6 @@ createSpecFile pkgdata flags mdest = do
   put $ "%ghc_" ++ pkgType ++ "_install"
 
   when selfdep $ do
-    putNewline
     put $ "%ghc_fix_rpath" +-+ "%{pkg_name}-%{version}"
 
   let licensefiles =
