@@ -43,7 +43,7 @@ import Distribution.License  (License (..))
 import Distribution.Simple.Utils (notice, warn)
 
 import Distribution.PackageDescription (BuildInfo (..), PackageDescription (..),
-                                        Executable (..),
+                                        Executable (..), FlagName (..),
                                         exeName, hasExes, hasLibs)
 
 --import Distribution.Version (VersionRange, foldVersionRange')
@@ -275,6 +275,9 @@ createSpecFile pkgdata flags mdest = do
   putNewline
 
   put "%build"
+  when (rpmConfigurationsFlags flags /= []) $ do
+    let cabalFlags = [ "-f" ++ (if b then "" else "-") ++ n | (FlagName n, b) <- rpmConfigurationsFlags flags ]
+    put $ "%define cabal_configure_options " ++ intercalate " " cabalFlags
   let pkgType = if hasLib then "lib" else "bin"
   put $ "%ghc_" ++ pkgType ++ "_build"
   putNewline
