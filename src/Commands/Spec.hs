@@ -190,8 +190,7 @@ createSpecFile pkgdata flags mdest = do
   putHdr "Release" $ release ++ (if distro == SUSE then [] else "%{?dist}")
   putHdr "Summary" summary
   case distro of
-    SUSE -> putHdr "Group" (if binlib then "Development/Languages/Other"
-                            else "System/Libraries")
+    SUSE -> putHdr "Group" "Development/Languages/Other"
     RHEL5 -> putHdr "Group" (if binlib then "Development/Languages"
                             else "System Environment/Libraries")
     _ -> return ()
