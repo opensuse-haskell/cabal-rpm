@@ -271,7 +271,6 @@ createSpecFile pkgdata flags mdest = do
     unless copied $
       copyFile cabalPath revised
   putNewline
-  putNewline
 
   put "%build"
   when (rpmConfigurationsFlags flags /= []) $ do
@@ -279,7 +278,6 @@ createSpecFile pkgdata flags mdest = do
     put $ "%define cabal_configure_options " ++ intercalate " " cabalFlags
   let pkgType = if hasLib then "lib" else "bin"
   put $ "%ghc_" ++ pkgType ++ "_build"
-  putNewline
   putNewline
 
   put "%install"
@@ -308,18 +306,15 @@ createSpecFile pkgdata flags mdest = do
            _ -> "{" ++ intercalate "," dupdocs ++ "}"
 
   putNewline
-  putNewline
 
   unless (null testsuiteDeps) $ do
     put "%check"
     put "%cabal_test"
     putNewline
-    putNewline
 
   when hasLib $ do
     let putInstallScript = do
           put "%ghc_pkg_recache"
-          putNewline
           putNewline
     put $ "%post" +-+ ghcPkgDevel
     putInstallScript
@@ -350,7 +345,6 @@ createSpecFile pkgdata flags mdest = do
     mapM_ (\ p -> put $ "%{_bindir}/" ++ (if p == name then "%{name}" else p)) execs
     listDataFiles
     putNewline
-    putNewline
 
   when hasLib $ do
     let baseFiles = if binlib then "-f ghc-%{name}.files" else "-f %{name}.files"
@@ -362,12 +356,10 @@ createSpecFile pkgdata flags mdest = do
       mapM_ (\ p -> put $ "%{_bindir}/" ++ (if p == name then "%{pkg_name}" else p)) execs
     unless hasExecPkg listDataFiles
     putNewline
-    putNewline
     put $ "%files" +-+ ghcPkgDevel +-+  develFiles
     when (distro /= Fedora) $ put "%defattr(-,root,root,-)"
     unless (null docs) $
       put $ "%doc" +-+ unwords docs
-    putNewline
     putNewline
 
   put "%changelog"
