@@ -415,7 +415,7 @@ showLicense _ (UnknownLicense l) = "Unknown" +-+ l
 #if defined(MIN_VERSION_Cabal) && MIN_VERSION_Cabal(1,16,0)
 showLicense SUSE (Apache Nothing) = "Apache-2.0"
 showLicense _    (Apache Nothing) = "ASL ?"
-showLicense SUSE (Apache (Just ver)) = "Apache-" +-+ showVersion ver
+showLicense SUSE (Apache (Just ver)) = "Apache-" ++ showVersion ver
 showLicense _    (Apache (Just ver)) = "ASL" +-+ showVersion ver
 #endif
 #if defined(MIN_VERSION_Cabal) && MIN_VERSION_Cabal(1,18,0)
