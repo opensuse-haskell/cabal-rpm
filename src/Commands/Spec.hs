@@ -425,6 +425,7 @@ showLicense _ (AGPL (Just ver)) = "AGPLv" ++ showVersion ver
 #if defined(MIN_VERSION_Cabal) && MIN_VERSION_Cabal(1,20,0)
 showLicense SUSE BSD2 = "BSD-2-Clause"
 showLicense _ BSD2 = "BSD"
+showLicense SUSE (MPL ver) = "MPL-" ++ showVersion ver
 showLicense _ (MPL ver) = "MPLv" ++ showVersion ver
 #endif
 #if defined(MIN_VERSION_Cabal) && MIN_VERSION_Cabal(1,22,0)
