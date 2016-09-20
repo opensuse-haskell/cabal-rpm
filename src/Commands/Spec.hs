@@ -49,7 +49,7 @@ import Distribution.PackageDescription (BuildInfo (..), PackageDescription (..),
 --import Distribution.Version (VersionRange, foldVersionRange')
 
 import System.FilePath (splitDirectories, joinPath)
-import System.Directory (copyFile, doesFileExist, getDirectoryContents)
+import System.Directory (doesFileExist, getDirectoryContents)
 import System.IO     (IOMode (..), hClose, hPutStrLn, openFile)
 #if defined(MIN_VERSION_time) && MIN_VERSION_time(1,5,0)
 import Data.Time.Format (defaultTimeLocale)
@@ -264,12 +264,8 @@ createSpecFile pkgdata flags mdest = do
 
   put "%prep"
   put $ "%setup -q" ++ (if pkgname /= name then " -n %{pkg_name}-%{version}" else "")
-  when (distro == SUSE && revision /= "0") $ do
-    let revised = revision ++ ".cabal"
+  when (revision /= "0") $ do
     put $ "cp -p %{SOURCE1}" +-+ pkg_name ++ ".cabal"
-    copied <- doesFileExist revised
-    unless copied $
-      copyFile cabalPath revised
   putNewline
 
   put "%build"
