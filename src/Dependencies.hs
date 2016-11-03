@@ -23,14 +23,11 @@ module Dependencies (
   ) where
 
 import PackageUtils (packageName)
-import SysCmd (cmd, cmdBool, repoquery, (+-+))
+import SysCmd (cmdBool, repoquery, (+-+))
 
 import Control.Applicative ((<$>))
-import Control.Monad (filterM, when)
-
+import Control.Monad (filterM)
 import Data.List (delete, nub)
-import Data.Maybe (catMaybes, isNothing)
-
 import Distribution.Package  (Dependency (..), PackageName (..))
 import Distribution.PackageDescription (PackageDescription (..),
                                         allBuildInfo,
@@ -38,8 +35,6 @@ import Distribution.PackageDescription (PackageDescription (..),
                                         TestSuite (..),
                                         hasExes,
                                         setupDepends)
-import System.Directory (doesDirectoryExist, doesFileExist)
-import System.IO (hPutStrLn, stderr)
 
 excludedPkgs :: String -> Bool
 excludedPkgs = flip notElem ["Cabal", "base", "ghc-prim", "integer-gmp"]
@@ -60,75 +55,101 @@ showDep :: String -> String
 showDep p = "ghc-" ++ p ++ "-devel"
 
 dependencies :: PackageDescription  -- ^pkg description
-                -> IO ([String], [String], [String], [String], Bool)
+                -> ([String], [String], [String], [String], Bool)
                 -- ^depends, tools, c-libs, pkgcfg, selfdep
-dependencies pkgDesc = do
-    let self = packageName $ package pkgDesc
-        (deps, selfdep) = buildDependencies pkgDesc self
-        buildinfo = allBuildInfo pkgDesc
-        tools =  nub $ map depName (concatMap buildTools buildinfo)
-        pkgcfgs = nub $ map depName $ concatMap pkgconfigDepends buildinfo
-        clibs = concatMap extraLibs buildinfo
-    return (deps, tools, nub clibs, pkgcfgs, selfdep)
+dependencies pkgDesc = (deps, tools, nub clibs, pkgcfgs, selfdep)
+  where
+    self = packageName $ package pkgDesc
+    (deps, selfdep) = buildDependencies pkgDesc self
+    buildinfo = allBuildInfo pkgDesc
+    tools =  nub $ map depName (concatMap buildTools buildinfo)
+    pkgcfgs = nub $ map depName $ concatMap pkgconfigDepends buildinfo
+    clibs = concatMap extraLibs buildinfo
 
-data QueryBackend = Rpm | Repoquery deriving Eq
 
-resolveLib :: String -> IO (Maybe String)
-resolveLib "stdc++" = return $ Just "libstdc++-devel"
-resolveLib lib = do
-  lib64 <- doesDirectoryExist "/usr/lib64"
-  let libsuffix = if lib64 then "64" else ""
-  let lib_path = "/usr/lib" ++ libsuffix ++ "/lib" ++ lib ++ ".so"
-  libInst <- doesFileExist lib_path
-  if libInst
-    then rpmqueryFile Rpm lib_path
-    else do
-    putStrLn $ "Running repoquery on" +-+ "lib" ++ lib
-    rpmqueryFile Repoquery lib_path
 
--- use repoquery or rpm -q to query which package provides file
-rpmqueryFile :: QueryBackend -> FilePath -> IO (Maybe String)
-rpmqueryFile backend file = do
-  -- FIXME dnf repoquery does not support -f !
-  let args =  ["-q", "--qf=%{name}", "-f"]
-  out <- if backend == Rpm
-         then cmd "rpm" (args ++ [file])
-         else repoquery args file
-  let pkgs = nub $ words out
-      -- EL5 repoquery can return "No package provides <file>"
-  case pkgs of
-    [pkg] -> return $ Just pkg
-    [] -> do
-      warning $ "Could not resolve package that provides" +-+ file
-      return Nothing
-    _ -> do
-      warning $ "More than one package seems to provide" +-+ file ++ ": " +-+ unwords pkgs
-      return Nothing
+resolveLib :: String -> String
+resolveLib "adns" = "libadns-devel"
+resolveLib "asound" = "alsa-devel"
+resolveLib "blas" = "blas-devel"
+resolveLib "bz2" = "libbz2-devel"
+resolveLib "crypt" = "glibc-devel"
+resolveLib "crypto" = "libopenssl-devel"
+resolveLib "curl" = "libcurl-devel"
+resolveLib "expat" = "libexpat-devel"
+resolveLib "ffi" = "libffi-devel-gcc5"
+resolveLib "fftw3" = "fftw3-devel"
+resolveLib "fontconfig" = "fontconfig-devel"
+resolveLib "freetype" = "freetype2-devel"
+resolveLib "gd" = "gd-devel"
+resolveLib "GeoIP" = "libGeoIP-devel"
+resolveLib "GL" = "Mesa-libGL-devel"
+resolveLib "GLU" = "glu-devel"
+resolveLib "gmp" = "gmp-devel"
+resolveLib "gnutls" = "libgnutls-devel"
+resolveLib "icudata" = "libicu-devel"
+resolveLib "icui18n" = "libicu-devel"
+resolveLib "icuuc" = "libicu-devel"
+resolveLib "idn" = "libidn-devel"
+resolveLib "IL" = "DevIL-devel"
+resolveLib "iw" = "libiw-devel"
+resolveLib "jpeg" = "libjpeg62-devel"
+resolveLib "lapack" = "lapack-devel"
+resolveLib "leveldb" = "leveldb-devel"
+resolveLib "lmdb" = "lmdb-devel"
+resolveLib "lua" = "lua-devel"
+resolveLib "lzma" = "xz-devel"
+resolveLib "m" = "glibc-devel"
+resolveLib "magic" = "file-devel"
+resolveLib "markdown" = "libmarkdown-devel"
+resolveLib "mpfr" = "mpfr-devel"
+resolveLib "notify" = "libnotify-devel"
+resolveLib "pcre" = "pcre-devel"
+resolveLib "png" = "libpng16-compat-devel"
+resolveLib "pq" = "postgresql94-devel"
+resolveLib "pthread" = "glibc-devel"
+resolveLib "resolv" = "glibc-devel"
+resolveLib "ruby" = "ruby2.2-devel"
+resolveLib "sass" = "libsass-devel"
+resolveLib "SDL" = "libSDL-devel"
+resolveLib "SDL2" = "libSDL2-devel"
+resolveLib "SDL_image" = "libSDL_image-devel"
+resolveLib "SDL_mixer" = "libSDL_mixer-devel"
+resolveLib "sndfile" = "libsndfile-devel"
+resolveLib "sqlite3" = "sqlite3-devel"
+resolveLib "ssl" = "libopenssl-devel"
+resolveLib "stdc++" = "libstdc++-devel"
+resolveLib "tag_c" = "libtag-devel"
+resolveLib "udev" = "libudev-devel"
+resolveLib "X11" = "libX11-devel"
+resolveLib "Xcursor" = "libXcursor-devel"
+resolveLib "Xext" = "libXext-devel"
+resolveLib "Xi" = "libXi-devel"
+resolveLib "Xinerama" = "libXinerama-devel"
+resolveLib "xml2" = "libxml2-devel"
+resolveLib "Xpm" = "libXpm-devel"
+resolveLib "Xrandr" = "libXrandr-devel"
+resolveLib "Xrender" = "libXrender-devel"
+resolveLib "Xss" = "libXss-devel"
+resolveLib "Xxf86vm" = "libXxf86vm-devel"
+resolveLib "z" = "zlib-devel"
+resolveLib s = error ("resolveLib: cannot map library name " ++ show s ++ " to package name")
 
-warning :: String -> IO ()
-warning s = hPutStrLn stderr $ "Warning:" +-+ s
-
-packageDependencies :: Bool   -- ^strict mode: True means abort on unknown dependencies
-                -> PackageDescription  -- ^pkg description
-                -> IO ([String], [String], [String], [String], Bool)
-                -- ^depends, tools, c-libs, pkgcfg, selfdep
-packageDependencies strict pkgDesc = do
-    (deps, tools', clibs', pkgcfgs, selfdep) <- dependencies pkgDesc
-    let excludedTools n = n `notElem` ["ghc", "hsc2hs", "perl"]
-        mapTools "gtk2hsC2hs" = "gtk2hs-buildtools"
-        mapTools "gtk2hsHookGenerator" = "gtk2hs-buildtools"
-        mapTools "gtk2hsTypeGen" = "gtk2hs-buildtools"
-        mapTools tool = tool
-        chrpath = ["chrpath" | selfdep]
-        tools = filter excludedTools $ nub $ map mapTools tools' ++ chrpath
-    clibsWithErrors <- mapM resolveLib clibs'
-    when (any isNothing clibsWithErrors) $
-      if strict
-      then fail "cannot resolve all clib dependencies"
-      else putStrLn "Warning: could not resolve all clib dependencies"
-    let clibs = catMaybes clibsWithErrors
-    let showPkgCfg p = "pkgconfig(" ++ p ++ ")"
-    return (map showDep deps, tools, nub clibs, map showPkgCfg pkgcfgs, selfdep)
+packageDependencies :: PackageDescription  -- ^pkg description
+                    -> ([String], [String], [String], [String], Bool)
+                    -- ^depends, tools, c-libs, pkgcfg, selfdep
+packageDependencies pkgDesc = (map showDep deps, tools, nub clibs, map showPkgCfg pkgcfgs, selfdep)
+  where
+    (deps, tools', clibs', pkgcfgs, selfdep) = dependencies pkgDesc
+    excludedTools n = n `notElem` ["ghc", "hsc2hs", "perl"]
+    mapTools "gtk2hsC2hs" = "gtk2hs-buildtools"
+    mapTools "gtk2hsHookGenerator" = "gtk2hs-buildtools"
+    mapTools "gtk2hsTypeGen" = "gtk2hs-buildtools"
+    mapTools tool = tool
+    chrpath = ["chrpath" | selfdep]
+    tools = filter excludedTools $ nub $ map mapTools tools' ++ chrpath
+    clibs = map resolveLib clibs'
+    showPkgCfg p = "pkgconfig(" ++ p ++ ")"
 
 testsuiteDependencies :: PackageDescription  -- ^pkg description
                 -> String           -- ^self
@@ -138,7 +159,7 @@ testsuiteDependencies pkgDesc self =
 
 missingPackages :: PackageDescription -> IO [String]
 missingPackages pkgDesc = do
-  (deps, tools, clibs, pkgcfgs, _) <- packageDependencies False pkgDesc
+  let (deps, tools, clibs, pkgcfgs, _) = packageDependencies pkgDesc
   pcpkgs <- mapM derefPkg pkgcfgs
   filterM notInstalled $ deps ++ ["ghc-Cabal-devel", "ghc-rpm-macros"] ++ tools ++ clibs ++ pcpkgs
 
