@@ -70,6 +70,7 @@ dependencies pkgDesc = (deps, tools, nub clibs, pkgcfgs, selfdep)
 
 resolveLib :: String -> String
 resolveLib "adns" = "libadns-devel"
+resolveLib "alut" = "freealut-devel"
 resolveLib "asound" = "alsa-devel"
 resolveLib "blas" = "blas-devel"
 resolveLib "bz2" = "libbz2-devel"
