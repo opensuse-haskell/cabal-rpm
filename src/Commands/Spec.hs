@@ -36,7 +36,7 @@ import Data.List        (groupBy, intercalate, intersect, isPrefixOf, isSuffixOf
 import Data.Maybe       (fromMaybe)
 import Data.Time.Clock  (getCurrentTime)
 import Data.Time.Format (formatTime)
-import Data.Version     (showVersion)
+import Data.Version     (showVersion, Version(..))
 
 import Distribution.License  (License (..))
 
@@ -386,14 +386,18 @@ findDocs cabalPath licensefiles = do
                       in any (`isPrefixOf` lowerName) names
         unlikely name = not $ any (`isSuffixOf` name) ["~"]
 
+normalizeVersion :: Version -> Version
+normalizeVersion (Version [v] vt) = Version [v,0] vt
+normalizeVersion v = v
+
 showLicense :: Distro -> License -> String
 showLicense SUSE (GPL Nothing) = "GPL-1.0+"
 showLicense _    (GPL Nothing) = "GPL+"
-showLicense SUSE (GPL (Just ver)) = "GPL-" ++ showVersion ver ++ "+"
+showLicense SUSE (GPL (Just ver)) = "GPL-" ++ showVersion (normalizeVersion ver) ++ "+"
 showLicense _    (GPL (Just ver)) = "GPLv" ++ showVersion ver ++ "+"
 showLicense SUSE (LGPL Nothing) = "LGPL-2.0+"
 showLicense _    (LGPL Nothing) = "LGPLv2+"
-showLicense SUSE (LGPL (Just ver)) = "LGPL-" ++ showVersion ver ++ "+"
+showLicense SUSE (LGPL (Just ver)) = "LGPL-" ++ showVersion (normalizeVersion ver) ++ "+"
 showLicense _    (LGPL (Just ver)) = "LGPLv" ++ [head $ showVersion ver] ++ "+"
 showLicense SUSE BSD3 = "BSD-3-Clause"
 showLicense _    BSD3 = "BSD"
@@ -409,7 +413,7 @@ showLicense _ (UnknownLicense l) = "Unknown" +-+ l
 #if defined(MIN_VERSION_Cabal) && MIN_VERSION_Cabal(1,16,0)
 showLicense SUSE (Apache Nothing) = "Apache-2.0"
 showLicense _    (Apache Nothing) = "ASL ?"
-showLicense SUSE (Apache (Just ver)) = "Apache-" ++ showVersion ver
+showLicense SUSE (Apache (Just ver)) = "Apache-" ++ showVersion (normalizeVersion ver)
 showLicense _    (Apache (Just ver)) = "ASL" +-+ showVersion ver
 #endif
 #if defined(MIN_VERSION_Cabal) && MIN_VERSION_Cabal(1,18,0)
@@ -419,7 +423,7 @@ showLicense _ (AGPL (Just ver)) = "AGPLv" ++ showVersion ver
 #if defined(MIN_VERSION_Cabal) && MIN_VERSION_Cabal(1,20,0)
 showLicense SUSE BSD2 = "BSD-2-Clause"
 showLicense _ BSD2 = "BSD"
-showLicense SUSE (MPL ver) = "MPL-" ++ showVersion ver
+showLicense SUSE (MPL ver) = "MPL-" ++ showVersion (normalizeVersion ver)
 showLicense _ (MPL ver) = "MPLv" ++ showVersion ver
 #endif
 #if defined(MIN_VERSION_Cabal) && MIN_VERSION_Cabal(1,22,0)
