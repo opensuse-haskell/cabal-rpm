@@ -20,7 +20,7 @@ module Commands.Spec (
   createSpecFile, createSpecFile_
   ) where
 
-import Dependencies (notInstalled, packageDependencies, showDep,
+import Dependencies (packageDependencies, showDep,
                      testsuiteDependencies)
 import Distro (Distro(..), detectDistro)
 import PackageUtils (getPkgName, isScmDir, PackageData (..),
@@ -29,7 +29,7 @@ import Setup (RpmFlags (..))
 import SysCmd ((+-+))
 
 import Control.Applicative ((<$>))
-import Control.Monad    (filterM, unless, void, when)
+import Control.Monad    (unless, void, when)
 import Data.Char        (toLower, toUpper)
 import Data.List        (groupBy, intercalate, intersect, isPrefixOf, isSuffixOf,
                          sort, (\\), nub, inits)
@@ -96,7 +96,6 @@ createSpecFile pkgdata flags mdest = do
   -- maybe shell commands should be in a monad or something
       (deps, tools, clibs, pkgcfgs, selfdep) = packageDependencies pkgDesc
       testsuiteDeps = testsuiteDependencies pkgDesc name
-  missTestDeps <- filterM notInstalled testsuiteDeps
 
   specAlreadyExists <- doesFileExist specFile
   let specFile' = specFile ++ if not (rpmForce flags) && specAlreadyExists then ".cblrpm" else ""
@@ -171,7 +170,7 @@ createSpecFile pkgdata flags mdest = do
     putNewline
 
   unless (null testsuiteDeps) $ do
-    put $ "%bcond_" ++ (if null missTestDeps then "without" else "with") +-+ "tests"
+    put "%bcond_with tests"
     putNewline
 
   -- let eCsources = concatMap (cSources . buildInfo) $ executables pkgDesc
